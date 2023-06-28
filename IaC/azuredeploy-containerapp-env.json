@@ -1,0 +1,70 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "location": {
+        "defaultValue": "canadacentral",
+        "type": "String"
+      },
+      "dapr_ai_instrumentation_key": {
+        "defaultValue": "",
+        "type": "String"
+      },
+      "environment_name": {
+        "defaultValue": "myenvironment",
+        "type": "String"
+      },
+      "log_analytics_customer_id": {
+        "type": "String"
+      },
+      "log_analytics_shared_key": {
+        "type": "SecureString"
+      },
+      "storage_account_name": {
+        "type": "String"
+      },
+      "storage_account_key": {
+        "type": "SecureString"
+      },
+      "storage_share_name": {
+        "type": "String"
+      }
+    },
+    "variables": {},
+    "resources": [
+      {
+        "type": "Microsoft.App/managedEnvironments",
+        "apiVersion": "2022-03-01",
+        "name": "[parameters('environment_name')]",
+        "location": "[parameters('location')]",
+        "properties": {
+          "daprAIInstrumentationKey": "[parameters('dapr_ai_instrumentation_key')]",
+          "appLogsConfiguration": {
+            "destination": "log-analytics",
+            "logAnalyticsConfiguration": {
+              "customerId": "[parameters('log_analytics_customer_id')]",
+              "sharedKey": "[parameters('log_analytics_shared_key')]"
+            }
+          }
+        },
+        "resources": [
+          {
+            "type": "storages",
+            "name": "myazurefiles",
+            "apiVersion": "2022-03-01",
+            "dependsOn": [
+              "[resourceId('Microsoft.App/managedEnvironments', parameters('environment_name'))]"
+            ],
+            "properties": {
+              "azureFile": {
+                "accountName": "[parameters('storage_account_name')]",
+                "accountKey": "[parameters('storage_account_key')]",
+                "shareName": "[parameters('storage_share_name')]",
+                "accessMode": "ReadWrite"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
